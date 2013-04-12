@@ -15,11 +15,14 @@ object Task {
 			val col = MongoClient()("test")("names")
 			val newObj = MongoDBObject("name" -> label)
 			col += newObj
+			for (added <- col.findOne(newObj)) {
+				
+			}
 	}
 	
 	def delete(id: String) {
 			val col = MongoClient()("test")("names")
-			val query = MongoDBObject("id" -> new ObjectId(id))
+			val query = MongoDBObject("_id" -> new ObjectId(id))
 			col.remove(query)
 	  
 	}
