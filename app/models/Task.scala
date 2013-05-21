@@ -7,11 +7,10 @@ import com.typesafe.config._
 case class Task(id: String, label: String)
 
 object Task {
-  val appConf = ConfigFactory.load()
+  private val appConf = ConfigFactory.load()
+  private val serverInfoStr = appConf.getString("mongodb.servers")
 
   def all() : List[Task] = {
-    println("appllication.conf/mongodb.server=" + server)
-    println("appllication.conf/mongodb.port=" + port.toString)
     val connect = connectMongo()
     val col = connect("playTodo")("TODO")
     try {
@@ -33,7 +32,7 @@ object Task {
       connect.close()
     }
   }
-	
+  
   def delete(id: String) {
     val connect = connectMongo()
     val col = connect("playTodo")("TODO")
@@ -54,18 +53,13 @@ object Task {
     // port number can be Int or String (if Int choosed, replSetSeeds process
     // should also changed).
     //
-    val serverInfoStr = appConf.getString("mongodb.servers")
-    val serverInfo = 
-      serverInfoStr.split(',') map (_.trim) map ((z: String) => 
-						  { if (z.contains(':')) z.split(':') 
-						    else (z + ":27017").split(':') })
-      try {
-	val replSetSeeds = for (Array(svr, port) <- serverInfo) yield new ServerAddress(svr, port.toInt)
-      } catch {
-	ex: MongoException: throw new RuntimeExcepction("can't connect mongo server: " + serverInfoStr)
-	ex: java.net.UnknownHostException: throw new RuntimeException("some server might not collect: " 
-					      + serverInfoStr)
-      }
-      MongoClient(replSetSeeds)
+
+    println("appllication.conf/mongodb.servers=" + serverInfoStr)
+
+    val serverInfo =  serverInfoStr.split(',') map (_.trim) map ((z: String) => 
+						    { if (z.contains(':')) z.split(':')
+						      else (z + ":27017").split(':') })
+    val replSetSeeds = for (Array(svr, port) <- serverInfo) yield new ServerAddress(svr, port.toInt)
+    MongoClient(replSetSeeds.toList)
   }
 }
