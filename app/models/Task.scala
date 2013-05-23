@@ -8,7 +8,6 @@ case class Task(id: String, label: String)
 
 object Task {
   private val appConf = ConfigFactory.load()
-  private val serverInfoStr = appConf.getString("mongodb.servers")
 
   def all() : List[Task] = {
     val connect = connectMongo()
@@ -54,6 +53,12 @@ object Task {
     // should also changed).
     //
 
+    val serverInfoStr = 
+      try {
+	appConf.getString("mongodb.servers")
+      } catch {
+	case e: ConfigException.Missing => "localhost:27017"
+      }
     println("appllication.conf/mongodb.servers=" + serverInfoStr)
 
     val serverInfo =  serverInfoStr.split(',') map (_.trim) map ((z: String) => 
